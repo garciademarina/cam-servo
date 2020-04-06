@@ -1,51 +1,45 @@
 package main
 
 import (
+	"log"
+
 	"github.com/garciademarina/cam-servo/server"
 	"gobot.io/x/gobot"
 	"gobot.io/x/gobot/drivers/gpio"
 	"gobot.io/x/gobot/platforms/raspi"
 )
 
-// 8 min
-// 52 max
-
 func main() {
 
 	adaptor := raspi.NewAdaptor()
-	servo := gpio.NewServoDriver(adaptor, "12")
-	servo.Start()
-	servo.CurrentAngle = 0
+	servoHorizontal := gpio.NewServoDriver(adaptor, "12")
+	servoVertical := gpio.NewServoDriver(adaptor, "16")
+
+	horizontalMoveAngle := make(chan uint8, 100)
+	verticalMoveAngle := make(chan uint8, 100)
 
 	// start server
-	s := server.New(servo)
+	s := server.New(horizontalMoveAngle, verticalMoveAngle)
 	go s.Run()
 
 	work := func() {
-		// log.Printf("Moving servo Max")
-		// servo.Move(52)
-		// time.Sleep(3 * time.Second)
-		// var angle uint8 = 52
-
-		// gobot.Every(1*time.Second, func() {
-		// 	angle = uint8(angle - 2)
-		// 	log.Printf("Moving servo to %d", angle)
-		// 	servo.Move(angle)
-		// })
-
-		// log.Printf("Moving servo CENTER")
-		// servo.Center()
-		// time.Sleep(3 * time.Second)
-
-		// log.Printf("Moving servo Min")
-		// servo.Move(0)
-		// time.Sleep(3 * time.Second)
-
+		go func() {
+			for {
+				select {
+				case angle := <-horizontalMoveAngle:
+					log.Printf("Moving horizontal servo to %d", angle)
+					servoHorizontal.Move(angle)
+				case angle := <-verticalMoveAngle:
+					log.Printf("Moving vertical servo to %d", angle)
+					servoVertical.Move(angle)
+				}
+			}
+		}()
 	}
 
 	robot := gobot.NewRobot("Servo robot",
 		[]gobot.Connection{adaptor},
-		[]gobot.Device{servo},
+		[]gobot.Device{servoHorizontal, servoVertical},
 		work,
 	)
 

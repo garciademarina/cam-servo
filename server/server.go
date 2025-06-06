@@ -74,7 +74,7 @@ func (s *Server) MoveDown(w http.ResponseWriter, r *http.Request) {
 
 // MoveLeft ...
 func (s *Server) MoveLeft(w http.ResponseWriter, r *http.Request) {
-	if s.verticalCurrentAngle != 0 {
+	if s.horizontalCurrentAngle != 0 {
 		s.horizontalCurrentAngle -= 10
 		s.horizonalServoChan <- uint8(scaleBetween(s.horizontalCurrentAngle, 10, 40, 0, 180))
 	}
@@ -82,7 +82,7 @@ func (s *Server) MoveLeft(w http.ResponseWriter, r *http.Request) {
 
 // MoveRight ...
 func (s *Server) MoveRight(w http.ResponseWriter, r *http.Request) {
-	if s.verticalCurrentAngle != 180 {
+	if s.horizontalCurrentAngle != 180 {
 		s.horizontalCurrentAngle += 10
 		s.horizonalServoChan <- uint8(scaleBetween(s.horizontalCurrentAngle, 10, 40, 0, 180))
 	}
